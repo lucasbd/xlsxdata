@@ -57,9 +57,9 @@
 
         async function loadExcelFile() {
     try {
-        const response = await fetch('https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?export=download&id=1CZtFhnwHKr9zbVm6wM6NGvZzzClx3q4m');
+        const response = await fetch('https://lucasbd.github.io/xlsxdata/Pasta1.xlsx');
         if (!response.ok) {
-            throw new Error("Erro ao carregar o arquivo Excel. Verifique se o arquivo está na mesma pasta do HTML.");
+            throw new Error("Erro ao carregar o arquivo Excel da CDN.");
         }
 
         const arrayBuffer = await response.arrayBuffer();
@@ -69,15 +69,10 @@
         const worksheet = workbook.Sheets[firstSheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-        if (rows.length < 2) {
-            throw new Error("O arquivo Excel não contém dados suficientes para preencher o gráfico.");
-        }
-
         const labels = rows.slice(1).map(row => row[0]); // Coluna A
         const values = rows.slice(1).map(row => {
             let value = row[1];
             if (typeof value === "string") {
-                // Remove símbolos de moeda e substitui vírgulas por pontos
                 value = value.replace(/[^\d,.-]/g, '').replace(',', '.');
             }
             return parseFloat(value);
@@ -92,9 +87,10 @@
         myBarChart.update();
     } catch (error) {
         console.error(error.message);
-        alert("Ocorreu um erro ao processar o arquivo Excel: " + error.message);
+        alert("Erro ao carregar dados: " + error.message);
     }
 }
+
 
 
         // Carrega os dados ao abrir a página
