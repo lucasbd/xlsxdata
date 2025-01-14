@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SB Admin 2 - Charts</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <h1>Bar Chart Example</h1>
+    <div>
+        <canvas id="myBarChart"></canvas>
+    </div>
+
+    <script>
+        const ctx = document.getElementById("myBarChart").getContext("2d");
+        let myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Data",
+                    backgroundColor: "#4e73df",
+                    hoverBackgroundColor: "#2e59d9",
+                    borderColor: "#4e73df",
+                    data: [],
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 12
+                        },
+                    },
+                    y: {
+                        ticks: {
+                            beginAtZero: true
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        async function loadExcelFile() {
+    try {
+        const response = await fetch('https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?export=download&id=1CZtFhnwHKr9zbVm6wM6NGvZzzClx3q4m');
+        if (!response.ok) {
+            throw new Error("Erro ao carregar o arquivo Excel. Verifique se o arquivo está na mesma pasta do HTML.");
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        if (rows.length < 2) {
+            throw new Error("O arquivo Excel não contém dados suficientes para preencher o gráfico.");
+        }
+
+        const labels = rows.slice(1).map(row => row[0]); // Coluna A
+        const values = rows.slice(1).map(row => {
+            let value = row[1];
+            if (typeof value === "string") {
+                // Remove símbolos de moeda e substitui vírgulas por pontos
+                value = value.replace(/[^\d,.-]/g, '').replace(',', '.');
+            }
+            return parseFloat(value);
+        });
+
+        if (values.some(isNaN)) {
+            throw new Error("A coluna B contém valores que não são numéricos.");
+        }
+
+        myBarChart.data.labels = labels;
+        myBarChart.data.datasets[0].data = values;
+        myBarChart.update();
+    } catch (error) {
+        console.error(error.message);
+        alert("Ocorreu um erro ao processar o arquivo Excel: " + error.message);
+    }
+}
+
+
+        // Carrega os dados ao abrir a página
+        loadExcelFile();
+    </script>
+</body>
+
+</html>
